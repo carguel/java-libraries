@@ -69,7 +69,7 @@ class Chef::Provider::JavaCertificate < Chef::Provider::LWRPBase
       end
       
       hash = Digest::SHA512.hexdigest(certdata)
-      certfile = "#{Chef::Config[:file_cache_path]}/#{certalias}.cert.#{hash}"
+      certfile = build_cert_file_path(certalias, truststore, hash)
       unless ::File.exists?(certfile)
           
           result = `#{keytool} -list -keystore #{truststore} -storepass #{truststore_passwd} -v`
@@ -129,10 +129,10 @@ class Chef::Provider::JavaCertificate < Chef::Provider::LWRPBase
               "keystore so it can be updated: #{$?}", $?.to_s[/exit (\d+)/, 1].to_i) unless $?.success? 
       end
       
-      FileUtils.rm_f("#{Chef::Config[:file_cache_path]}/#{certalias}.cert.*")
+      certfile = build_cert_file_path(certalias, truststore, "*")
+      FileUtils.rm_f(certfile)
       
   end
-
 
   # Build the path of the keytool command based on the JAVA HOME.
   #
@@ -155,5 +155,15 @@ class Chef::Provider::JavaCertificate < Chef::Provider::LWRPBase
   # return [String] The JAVA HOME path. 
   def get_java_home
     new_resource.java_home || node['java']['java_home']
+  end
+
+  # Build the certificate file path under the Chef cache directory.
+  # @param [String] cert_alias Certificate alias.
+  # @param [String] truststore Truststore path.
+  # @param [String] hash Certificate content hash.
+  # @return [String] The certificate file path.
+  def build_cert_file_path(cert_alias, truststore, hash)
+    sanitized_truststore = truststore.gsub(%r{[:'"]}, "").gsub(%r{[ /\\\.]}, "_")
+    "#{Chef::Config[:file_cache_path]}/#{cert_alias}-#{sanitized_truststore}.cert.#{hash}"
   end
 end
