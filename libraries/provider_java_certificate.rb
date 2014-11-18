@@ -117,8 +117,6 @@ class Chef::Provider::JavaCertificate < Chef::Provider::LWRPBase
       truststore = "#{java_home}/jre/lib/security/cacerts" if truststore.nil?
       truststore_passwd = "changeit" if truststore_passwd.nil?
           
-      keytool = "#{java_home}/bin/keytool"
-
       has_key = !`#{keytool} -list -keystore #{truststore} -storepass #{truststore_passwd} -v | grep "#{certalias}"`[/Alias name: #{certalias}/].nil?
       Chef::Application.fatal!("Error querying keystore for existing certificate: #{$?}", $?.to_s[/exit (\d+)/, 1].to_i) unless $?.success?
       
