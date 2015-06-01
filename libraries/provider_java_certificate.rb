@@ -76,6 +76,9 @@ class Chef::Provider::JavaCertificate < Chef::Provider::LWRPBase
           Chef::Log.debug("Executing: #{keytool} -list -keystore #{truststore} -storepass #{truststore_passwd} -v | grep \"#{certalias}\"\n#{result}")
           Chef::Application.fatal!("Error querying keystore for existing certificate: #{$?}", $?.to_s[/exit (\d+)/, 1].to_i) unless $?.success?
           
+          if ! result.valid_encoding?
+            result = result.encode("UTF-16be", :invalid=>:replace, :replace=>"?").encode('UTF-8')
+          end
           has_key = !result[/Alias name: #{certalias}/].nil?
           
           if has_key
