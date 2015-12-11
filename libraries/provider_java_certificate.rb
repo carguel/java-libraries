@@ -26,7 +26,7 @@ class Chef::Provider::JavaCertificate < Chef::Provider::LWRPBase
   action :install do
       
       java_home = get_java_home
-      keytool = build_keytool_path
+      keytool = keytool_cmd
 
       truststore = new_resource.keystore_path
       truststore_passwd = new_resource.keystore_passwd
@@ -112,7 +112,7 @@ class Chef::Provider::JavaCertificate < Chef::Provider::LWRPBase
       
       certalias = new_resource.name
       java_home = get_java_home
-      keytool = build_keytool_path
+      keytool = keytool_cmd
 
       truststore = new_resource.keystore_path
       truststore_passwd = new_resource.keystore_passwd
@@ -149,6 +149,13 @@ class Chef::Provider::JavaCertificate < Chef::Provider::LWRPBase
       keytool
     end
   end
+
+  # Return the keytool command line, forcing english locale.
+  # @return String The keytool command line.
+  def keytool_cmd
+    "#{build_keytool_path} -J-Duser.language=en"
+  end
+
 
   # Return the JAVA HOME path considering first the java_home resource attribute
   #  then the ['java']['java_home'] node attribute.
